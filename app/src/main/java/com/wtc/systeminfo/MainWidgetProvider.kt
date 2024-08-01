@@ -10,7 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Environment
 import android.os.StatFs
-import android.util.Log
 import android.widget.RemoteViews
 
 

@@ -7,12 +7,29 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.wtc.systeminfo.ui.theme.SystemInfoTheme
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -35,7 +52,53 @@ class SplashActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.splash_window)
+
+        setContent {
+            SystemInfoTheme {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.splash_background),
+                        contentDescription = "Splash Window",
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .clickable {
+                                openWebPage("https://zzz.mihoyo.com/main")
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Button(
+                        onClick = {
+                            openWebPage("https://ys.mihoyo.com")
+                        },
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.TopEnd)
+                            .padding(end = 16.dp, top = 16.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text("×", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+
+                    Button(
+                        onClick = {
+                            skipped = true
+                            goToMainActivity()
+                        },
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 16.dp, bottom = 16.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text("Exit", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
 
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
         windowInsetsController.isAppearanceLightStatusBars = false
@@ -49,23 +112,6 @@ class SplashActivity : AppCompatActivity(), SensorEventListener {
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
         }
 
-        // 查找跳过按钮并设置点击监听器
-        val skipButton: Button = findViewById(R.id.skip_button)
-        skipButton.setOnClickListener {
-            openWebPage("https://ys.mihoyo.com")
-        }
-
-        val backImage: ImageView = findViewById(R.id.splash_image)
-        backImage.setOnClickListener {
-            openWebPage("https://zzz.mihoyo.com/main")
-        }
-
-        val exitButton: Button = findViewById(R.id.exit_button)
-        exitButton.setOnClickListener {
-            skipped = true
-            goToMainActivity()
-        }
-
         // 使用 Coroutine 来延迟启动主活动
         mainScope.launch {
             delay(5000)
@@ -74,7 +120,6 @@ class SplashActivity : AppCompatActivity(), SensorEventListener {
                 goToMainActivity()
             }
         }
-
     }
 
     // 摇晃事件处理函数

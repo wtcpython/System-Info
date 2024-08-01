@@ -33,7 +33,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.SystemInfo">
         </activity>
 
@@ -48,13 +48,6 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info"/>
-        </receiver>
-        <receiver
-            android:name=".ShortcutsReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
         </receiver>
     </application>
 
