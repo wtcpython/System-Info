@@ -1,0 +1,12 @@
+<!-- res/values/styles.xml -->
+<resources>
+    <!-- 应用主题 -->
+    <style name="Theme.YourApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Customize your theme here -->
+    </style>
+
+    <!-- 启动页面主题 -->
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+</resources>

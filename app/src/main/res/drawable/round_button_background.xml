@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#C0D3D3D3"/> <!-- 完全透明的颜色 -->
+    <corners android:radius="20dp"/> <!-- 圆形按钮的半径 -->
+    <size
+        android:width="40dp"
+        android:height="40dp"/> <!-- 按钮的尺寸 -->
+</shape>
