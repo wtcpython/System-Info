@@ -2,7 +2,7 @@ package com.wtc.systeminfo
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.setContent
@@ -54,11 +54,10 @@ fun WebViewScreen(url: String?) {
             WebView(context).apply {
                 settings.apply {
                     javaScriptEnabled = true
-                    useWideViewPort = true
-                    loadWithOverviewMode = true
                     domStorageEnabled = true
                     loadsImagesAutomatically = true
                     javaScriptCanOpenWindowsAutomatically = true
+                    cacheMode = WebSettings.LOAD_DEFAULT
                 }
                 webViewClient = WebViewClient()
                 url?.let { loadUrl(it) }

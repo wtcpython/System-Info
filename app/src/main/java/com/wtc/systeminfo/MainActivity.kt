@@ -7,14 +7,15 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
+import android.net.Uri
 import android.os.BatteryManager
 import android.os.Bundle
 import android.os.StatFs
+import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -23,10 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.wtc.systeminfo.ui.theme.SystemInfoTheme
 import kotlinx.coroutines.delay
 
@@ -53,16 +53,64 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                     ScaffoldWithBottomNavigation(assets)
+                    MainContentWithDialog(assets)
                 }
             }
         }
     }
 }
 
+@Composable
+fun MainContentWithDialog(assertManager: AssetManager)
+{
+    var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        // 延迟显示对话框
+        delay(500)
+        showDialog = true
+    }
+
+    MainContent(assertManager)
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            text = {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    AndroidView(
+                        modifier = Modifier
+                            .fillMaxWidth() // 占据整个屏幕宽度
+                            .height(500.dp), // 设定高度，可以根据需要调整
+                        factory = { context ->
+                            VideoView(context).apply {
+                                setVideoURI(Uri.parse("https://fastcdn.mihoyo.com/content-v2/hkrpg/101956/8f827d2d9b7340c9b8277176dd0dd83d_6578312574948238203.mp4"))
+                                setOnCompletionListener {
+                                    start() // 视频播放完成后重新播放
+                                }
+                                start()
+                            }
+                        }
+                    )
+                    TextButton(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 16.dp, bottom = 16.dp),
+                        onClick = { showDialog = false }) {
+                        Text("关闭")
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
+}
+
 
 @Composable
-fun ScaffoldWithBottomNavigation(assertManager: AssetManager) {
+fun MainContent(assertManager: AssetManager) {
     var selectedItem by remember { mutableIntStateOf(0) }
 
     Scaffold(
