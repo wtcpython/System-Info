@@ -1,14 +1,8 @@
 package com.wtc.systeminfo
 
 import android.app.ActivityManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.content.res.AssetManager
-import android.net.Uri
-import android.os.BatteryManager
 import android.os.Bundle
 import android.os.StatFs
 import android.widget.VideoView
@@ -17,7 +11,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.wtc.systeminfo.ui.theme.SystemInfoTheme
 import kotlinx.coroutines.delay
 
@@ -53,7 +50,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    MainContentWithDialog(assets)
+                    MainContentWithDialog()
                 }
             }
         }
@@ -61,7 +58,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainContentWithDialog(assertManager: AssetManager)
+fun MainContentWithDialog()
 {
     var showDialog by remember { mutableStateOf(false) }
 
@@ -71,7 +68,7 @@ fun MainContentWithDialog(assertManager: AssetManager)
         showDialog = true
     }
 
-    MainContent(assertManager)
+    MainContent()
 
     if (showDialog) {
         AlertDialog(
@@ -86,7 +83,7 @@ fun MainContentWithDialog(assertManager: AssetManager)
                             .height(500.dp), // 设定高度，可以根据需要调整
                         factory = { context ->
                             VideoView(context).apply {
-                                setVideoURI(Uri.parse("https://fastcdn.mihoyo.com/content-v2/hkrpg/101956/8f827d2d9b7340c9b8277176dd0dd83d_6578312574948238203.mp4"))
+                                setVideoURI("https://fastcdn.mihoyo.com/content-v2/hkrpg/101956/8f827d2d9b7340c9b8277176dd0dd83d_6578312574948238203.mp4".toUri())
                                 setOnCompletionListener {
                                     start() // 视频播放完成后重新播放
                                 }
@@ -110,7 +107,7 @@ fun MainContentWithDialog(assertManager: AssetManager)
 
 
 @Composable
-fun MainContent(assertManager: AssetManager) {
+fun MainContent() {
     var selectedItem by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -150,7 +147,7 @@ fun MainContent(assertManager: AssetManager) {
             when (selectedItem) {
                 0 -> MemoryStorageInfo()
                 1 -> BatteryStatusMonitor()
-                2 -> SettingsItem(assertManager)
+                2 -> SettingsItem()
             }
         }
     }
@@ -191,57 +188,6 @@ fun MemoryStorageInfo() {
         CustomCard(title = "总存储", description = "%.2f GB".format(totalStorage))
         CustomCard(title = "可用存储", description = "%.2f GB".format(availableStorage))
         NotificationButton()
-    }
-}
-
-@Composable
-fun BatteryStatusMonitor() {
-    val context = LocalContext.current
-    var batteryLevel by remember { mutableStateOf("0.0") }
-    var chargingStatus by remember { mutableStateOf("未知") }
-
-    // Create a BroadcastReceiver to listen for battery changes
-    val batteryReceiver = remember {
-        object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
-                    // Update battery level
-                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                    val batteryPct = if (level != -1 && scale != -1) {
-                        (level.toFloat() / scale) * 100.0f
-                    } else {
-                        0.0f
-                    }
-                    batteryLevel = String.format("%.1f", batteryPct)
-
-                    // Update charging status
-                    val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
-                    chargingStatus = when (plugged) {
-                        BatteryManager.BATTERY_PLUGGED_AC -> "AC"
-                        BatteryManager.BATTERY_PLUGGED_USB -> "USB"
-                        BatteryManager.BATTERY_PLUGGED_WIRELESS -> "无线充电"
-                        else -> "未在充电"
-                    }
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        context.registerReceiver(batteryReceiver, intentFilter)
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            context.unregisterReceiver(batteryReceiver)
-        }
-    }
-
-    Column {
-        CustomCard(title = "当前电池容量", description = "$batteryLevel%")
-        CustomCard(title = "充电状态", description = chargingStatus)
     }
 }
 
