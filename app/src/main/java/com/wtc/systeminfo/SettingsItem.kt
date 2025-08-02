@@ -3,33 +3,23 @@ package com.wtc.systeminfo
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.res.AssetManager
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
 @Composable
-fun SettingsItem(assertManager: AssetManager) {
+fun SettingsItem() {
     val context = LocalContext.current
     val (appName, appVersion) = getAppInfo()
 
@@ -38,7 +28,7 @@ fun SettingsItem(assertManager: AssetManager) {
 
         Text(text = "系统信息")
         SystemInfo()
-        HardWareInfo(assetManager = assertManager)
+        HardWareInfo()
 
         Text(text = "关于软件")
         CustomCard(title = appName, description = "Version: $appVersion")
@@ -52,13 +42,13 @@ fun SettingsItem(assertManager: AssetManager) {
 }
 
 @Composable
-fun getAppInfo(): Pair<String, String> {
+fun getAppInfo(): Pair<String, String?> {
     val context = LocalContext.current
     val packageManager = context.packageManager
     val packageName = context.packageName
 
     val packageInfo = packageManager.getPackageInfo(packageName, 0)
-    val appName = packageManager.getApplicationLabel(packageInfo.applicationInfo).toString()
+    val appName = packageInfo.applicationInfo?.let { packageManager.getApplicationLabel(it) }.toString()
     val appVersion = packageInfo.versionName
 
     return Pair(appName, appVersion)
@@ -92,35 +82,24 @@ fun jumpToAboutPage(context: Context) {
     }
 }
 
+
 @Composable
-fun HardWareInfo(assetManager: AssetManager) {
-    val scope = rememberCoroutineScope()
+fun HardWareInfo() {
+    val context = LocalContext.current
 
     var chipsetName by remember { mutableStateOf("Unknown") }
 
-    LaunchedEffect(key1 = assetManager, block = {
-        scope.launch(Dispatchers.IO) {
-            val json = withContext(Dispatchers.IO) {
-                readJsonFile(assetManager, "soc.json")
-            }
-            val typeToken = object : TypeToken<Map<String, String>>() {}.type
-            val processorsMap = Gson().fromJson(json, typeToken) as Map<String, String>
+    LaunchedEffect(key1 = context) {
+        val socModel = Build.SOC_MODEL
+        val prefix = socModel.split("-")[0]
+        val db = SocDatabase.getInstance(context)
 
-            val socModel = Build.SOC_MODEL
-            val processorName = processorsMap[socModel] ?: processorsMap["$socModel-AB"] ?: socModel
-            withContext(Dispatchers.Main) {
-                chipsetName = processorName
-            }
+        val processorName = withContext(Dispatchers.IO) {
+            db.socDao().getProcessorName(socModel, prefix) ?: socModel
         }
-    })
+        chipsetName = processorName
+    }
+
 
     CustomCard(title = "处理器型号", description = chipsetName)
-}
-
-private fun readJsonFile(assetManager: AssetManager, fileName: String): String {
-    return assetManager.open(fileName).use { inputStream ->
-        BufferedReader(InputStreamReader(inputStream)).use { reader ->
-            reader.readText()
-        }
-    }
 }

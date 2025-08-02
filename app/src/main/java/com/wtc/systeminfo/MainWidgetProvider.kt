@@ -59,12 +59,8 @@ class MainWidgetProvider : AppWidgetProvider() {
         val remoteViews: RemoteViews? = null
 
         if (intent.action == "com.wtc.systeminfo") {
-//            Toast.makeText(context, "收到了 哥", Toast.LENGTH_SHORT).show();
-            //获得appwidget管理实例，用于管理appwidget以便进行更新操作
             val manger = AppWidgetManager.getInstance(context)
-            // 相当于获得所有本程序创建的appwidget
             val thisName = ComponentName(context, MainWidgetProvider::class.java)
-            //更新widget
             manger.updateAppWidget(thisName, remoteViews)
         }
     }
